@@ -1,0 +1,7 @@
+两线制1/4桥：接Sx+ 和 EX_G
+
+三线制1/4桥：接Sx+ SxG和EX_G
+
+半桥       ：接Sx+ Sx-和EX_G
+
+全桥       ：接EX_S EX_G Sx+和Sx-
