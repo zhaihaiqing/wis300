@@ -294,7 +294,7 @@ void Sample_Instruction_Control(void)
 	{
 		GPIOA->BSRRH=GPIO_Pin_1;
 	}
-	ADS1248_WriteReg(ADS_SYS0, Sample_Control.Sample_Rate | 0x70);
+	ADS1248_WriteReg(ADS_SYS0, (3-Sample_Control.Sample_Rate) | 0x70);//配置采样速率
 	ADS1248_WriteByte(ADS_RDATAC);
 	ADS1248_CS(0x00);
 	
