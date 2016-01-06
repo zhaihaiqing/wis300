@@ -1,6 +1,8 @@
 
 #include "main.h"
 
+unsigned char FirstReadUart_Flag=0x00;
+unsigned char ReturnData_Count=0x00;
 
 /*******************************************************************************
 * Function Name  : Filter_A\B\C\D
@@ -384,6 +386,108 @@ void Sample_Instruction_Control(void)
 #endif
 		while(SampleTime)
 		{
+				if(TpaCommand_Sampling_Flag)
+				{
+					if(FirstReadUart_Flag == 0x00)
+					{
+					 data_p = get_active_message(&data_len);//确保进来后只读取一次串口数据
+					 FirstReadUart_Flag=0x01;
+					}						
+					if(*(data_p+6)==0xa1)
+					{
+						ReturnData_Count++;
+						switch(*(data_p+7))//此处只提供查询功能
+						{
+							case 	 REQUEST_CHANNEL_CFG:			//查询通道配置信息01
+													switch(ReturnData_Count)
+													{
+														case 1:
+															Return_Channel_CFG();
+														break;
+														case 2:
+															Return_Ack(REQUEST_CHANNEL_CFG,SUCCESSFUL_EXECUTION);
+															//清零标志位，放在ACK发送之后
+															FirstReadUart_Flag=0x00;
+															TpaCommandLen = 0;//先清理数据长度
+															TpaCommand_Sampling_Flag = 0;//清零标志位
+															USART1_ClearBuf();//清空串口缓存
+															ReturnData_Count=0;
+														break;
+														default:
+															break;
+													}
+													break;
+							case   REQUEST_CFG_AND_CALIBRATION:		//查询通道配置参数及校准参数  05
+													switch(ReturnData_Count)
+													{
+														case 1:
+															Return_Channel_CFG();
+															//printf("1\r\n");
+														break;
+														case 2:
+															Return_ChannelA_Offset();
+															//printf("2\r\n");
+														break;
+														case 3:
+															Return_ChannelB_Offset();
+															//printf("3\r\n");
+														break;
+														case 4:
+															Return_ChannelC_Offset();
+															//printf("4\r\n");
+														break;
+														case 5:
+															Return_ChannelD_Offset();
+															//printf("5\r\n");
+														break;
+														case 6:
+															Return_Ack(REQUEST_CFG_AND_CALIBRATION,SUCCESSFUL_EXECUTION);
+															//printf("6\r\n");
+															//清零标志位，放在ACK发送之后
+															FirstReadUart_Flag=0x00;
+															TpaCommandLen = 0;//先清理数据长度
+															TpaCommand_Sampling_Flag = 0;//清零标志位
+															USART1_ClearBuf();//清空串口缓存
+															ReturnData_Count=0;
+														break;
+														default:
+															break;
+														
+													}
+													break;
+							case 	 REQUEST_CALIBRATION_VAL:		//读取校准参数   21
+													switch(ReturnData_Count)
+													{
+														case 1:
+															Return_ChannelA_Offset();
+														break;
+														case 2:
+															Return_ChannelB_Offset();
+														break;
+														case 3:
+															Return_ChannelC_Offset();
+														break;
+														case 4:
+															Return_ChannelD_Offset();
+														break;
+														case 5:
+															Return_Ack(REQUEST_CALIBRATION_VAL,SUCCESSFUL_EXECUTION);
+															//清零标志位，放在ACK发送之后
+															FirstReadUart_Flag=0x00;
+															TpaCommandLen = 0;//先清理数据长度
+															TpaCommand_Sampling_Flag = 0;//清零标志位
+															USART1_ClearBuf();//清空串口缓存
+															ReturnData_Count=0;
+														break;
+														default:
+															break;
+													}
+													break;
+							default:														
+													break;
+						}
+					}
+				}		
 				//思想：以固定通道来确定同步信号，以最先产生中断信号的通道作为标志实现拉高拉低中断信号
 				if(Ch_A_DATA.Sample_Flag)
 										{

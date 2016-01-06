@@ -276,3 +276,11 @@ PUTCHAR_PROTOTYPE
 }
 
 
+void USART1_ClearBuf(void)
+{
+	UART1_RBUF_ST *p = &uart1_rbuf;
+	p->in=0;
+	p->out=0;
+}
+
+

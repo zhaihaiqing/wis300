@@ -65,6 +65,7 @@ void NVIC_UART_Configuration(void);
 void USART_PutChar(USART_TypeDef* USARTx,unsigned char ch);
 void USART_PutData(USART_TypeDef* USARTx,unsigned char *dat,unsigned short int len);
 void USART_PutS(USART_TypeDef* USARTx,unsigned char *s);
+void USART1_ClearBuf(void);
 uint16_t USART1_GetCharBlock(uint16_t timeout);
 uint16_t USART1_GetChar(void);
 uint16_t USART2_GetCharBlock(uint16_t timeout);

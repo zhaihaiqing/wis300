@@ -211,6 +211,11 @@ void SysTick_Handler(void)
 			SampleTime--;
 		}
 	}	
+	if(TpaCommandIntervalTime)TpaCommandIntervalTime--;
+	else//如果间隔时间已超时,并且缓存中有数据,并且数据标志位为0则说明新包接收完毕
+	{
+		if(TpaCommandLen && !TpaCommand_Sampling_Flag)TpaCommand_Sampling_Flag = 1;
+	}		
 }
 
 void USART1_IRQHandler(void)
@@ -220,12 +225,23 @@ void USART1_IRQHandler(void)
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 	{
 		Uart_Get_Data = USART_ReceiveData(USART1);
-		if((p->in - p->out)<UART1_RBUF_SIZE)
+		if(!TpaCommand_Sampling_Flag)
 		{
-			p->buf [p->in & (UART1_RBUF_SIZE-1)] = Uart_Get_Data;	
-			p->in++;
-			Uart1Flag = 1;
+			if((((p->out - p->in) & (UART1_RBUF_SIZE - 1)) == 0) || TpaCommandIntervalTime)//如果缓存为空,表示第一个数据,或者计时未结束
+			{
+				TpaCommandIntervalTime = TPA_COMMAND_INTERVAL_TIME;
+				if((p->in - p->out)<UART1_RBUF_SIZE)
+				{
+					p->buf [p->in & (UART1_RBUF_SIZE-1)] = Uart_Get_Data;	
+					p->in++;
+					Uart1Flag = 1;
+				}
+				TpaCommandLen  = (p->in - p->out) & (UART2_RBUF_SIZE - 1);//获取数据长度       
+			}
 		}
+#ifdef Debug_EN
+		else printf("Tpa data lost!\r\n");
+#endif
 	}
 }
 

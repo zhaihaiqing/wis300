@@ -16,7 +16,11 @@ unsigned char Set_Sample_Speed , Set_Bridge_Type ;//定义采样速度和电桥类型
 //定义通道1、2、3、4增益
 unsigned char *data_p=NULL;
 int data_len;
-//unsigned char xxxxx=0xff;
+
+__IO uint8_t TpaCommandIntervalTime = 0;//定义tpa指令发送间隔时间,超时认为一条指令已发送完毕
+__IO uint8_t TpaCommand_Sampling_Flag = 0;//指令标志位,1=已收到一条指令
+__IO uint8_t TpaCommandLen = 0;//指令长度
+
  
 Ch_DATA_tagdef 						       Ch_A_DATA,Ch_B_DATA,Ch_C_DATA,Ch_D_DATA;
 EEPROM_DATA_tagdef					     EEPROM_DATA;
@@ -27,7 +31,7 @@ AUTO_CALIBRATION_tagdef          AUTO_CALIBRATION;//定义自动采样结构体
 Inquire_CALIBRATION_CFG_tagdef   CALIBRATION_CFG;//
 CALIBRATION_tagdef               CALIBRATION_SET;//手动设置校准参数
 
-	__IO uint32_t TimingDelay = 0;;
+__IO uint32_t TimingDelay = 0;;
 /**********************************************************************************
 * Function Name  : Delay
 * 延时函数,通过对time6设定
@@ -98,7 +102,7 @@ int main(void)
 {
 	/******************外设配置***********************/
  	/* Configure the Priority Group to 2 bits */
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);//中断优先级分组
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);//中断优先级分组
 	if (SysTick_Config(SystemCoreClock / 1000))while(1);	
 	TIM6_Configuration();//TIM6  延时
 	NVIC_TIM6_Configuration();//TIM6中断配置
@@ -121,16 +125,9 @@ int main(void)
 #ifdef Debug_EN
 		printf("Watchdog Reset!\r\n");
 #endif
-		//Return_Ack(HADRWARE_NOTREADY);
 		RCC_ClearFlag();}
 		IWDG_INIT(5000);
 #endif
-	//以上完成所有硬件初始化
-	//EEPROM_EraseFullChip();
-	//I2C_WriteS_24C(EEPROM_DATA_BASEADDRESS+44,&xxxxx,1);
-	//I2C_WriteS_24C(EEPROM_DATA_BASEADDRESS+45,&xxxxx,1);
-	//I2C_WriteS_24C(EEPROM_DATA_BASEADDRESS+46,&xxxxx,1);
-	//I2C_WriteS_24C(EEPROM_DATA_BASEADDRESS+47,&xxxxx,1);
 	I2C1_ReadS_24C(EEPROM_DATA_BASEADDRESS,(unsigned char *)&EEPROM_DATA.A_Zero_offset,sizeof(EEPROM_DATA));	
 		
 #ifdef WatchDog_EN
@@ -138,23 +135,29 @@ int main(void)
 #endif
 #ifdef	Debug_EN
 	printf("Hardware ready!\r\n");
-#endif
-		
-		
+#endif		
+	
 //	send_message_prepare(0xa1);
 //	
-//  send_message_add(0x05);//单字节
+//	send_message_add(0x29);//单字节
 
-//		
+//	send_message_add(0x0f);//单字节
+//	send_message_add(0x00);//单字节
+//	send_message_add(0x01);//单字节
 //	send_message_add(0x00);//单字节
 //	send_message_add(0x00);//单字节
-//	 
+//	send_message_add(0x06);//单字节
+//	send_message_add(0x00);//单字节
+//	send_message_add(0x00);//单字节
 //	send_message(1);
-	
+//	
 	
 	while(1)
 	{
 		data_p=get_active_message(&data_len);
+		TpaCommandLen = 0;//先清理数据长度
+		TpaCommand_Sampling_Flag = 0;//清零标志位
+		USART1_ClearBuf();//清空串口缓存
 #ifdef	Debug_EN
 		printf("\r\n");//通过调试串口将收到的命令返回	
 #endif		

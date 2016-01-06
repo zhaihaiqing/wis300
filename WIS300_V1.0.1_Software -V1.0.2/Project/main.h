@@ -19,13 +19,14 @@
 #pragma   pack(1)										    //结构体单字节对齐方式      #pragma pack(n)
 
 #define   WatchDog_EN
-//#define		Debug_EN
+#define		Debug_EN
 
 
 #define	ADS_PGA							 	        128
 #define SystemResetSoft								*((uint32_t *)0xe000ed0c)=0x05fa0004; //实现系统软件复位
 //#define LED1_ON													GPIOB->BSRRH = GPIO_Pin_14
 //#define LED1_OFF												GPIOB->BSRRL = GPIO_Pin_14
+#define TPA_COMMAND_INTERVAL_TIME     5
 
 
 #define TWO_WIRE_SINGLE_BRIDGE				0x84					//两线制单桥
@@ -269,7 +270,12 @@ extern unsigned int  SysTick_Count;
 extern unsigned int SampleTime;
 extern unsigned char SampleTime_Flag;
 
+extern __IO uint8_t TpaCommandIntervalTime;//定义tpa指令发送间隔时间,超时认为一条指令已发送完毕
+extern __IO uint8_t TpaCommand_Sampling_Flag;//指令标志位,1=已收到一条指令
+extern __IO uint8_t TpaCommandLen;//指令长度
+
 extern unsigned char *data_p;
+extern int data_len;
 extern Ch_DATA_tagdef 						Ch_A_DATA,Ch_B_DATA,Ch_C_DATA,Ch_D_DATA;
 extern Channel_SET_tagdef         Channel_CFG;
 extern Sample_Instruction_tagdef  Sample_Control;

@@ -10,11 +10,16 @@
 *******************************************************************************/
 void Return_Channel_Offset(void)
 {
+	Return_ChannelA_Offset();
+	Return_ChannelB_Offset();
+	Return_ChannelC_Offset();
+	Return_ChannelD_Offset();	
+}
+//返回A通道校准结果
+void Return_ChannelA_Offset(void)
+{
 	Calibration_return_tagdef Calibration_return;
-	int Calibration_zero=0,Calibration_half=0;
-	
-	//memcpy(&CALIBRATION_CFG,data_p+7,*(data_p+4));
-	
+	int Calibration_zero=0,Calibration_half=0;	
 	//读取校准参数    21
 
 	Calibration_return.Message_type=21;
@@ -31,10 +36,15 @@ void Return_Channel_Offset(void)
 	Calibration_return.Calibration_half[3]=Calibration_half&0x000000ff;
 	Calibration_return.Channel=0x01;
 	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));
-	Delay(500);
+}
+//返回B通道校准结果
+void Return_ChannelB_Offset(void)
+{
+	Calibration_return_tagdef Calibration_return;
+	int Calibration_zero=0,Calibration_half=0;	
+	//读取校准参数    21
 	
-		
-	
+	Calibration_return.Message_type=21;
 	Calibration_zero=(int)(EEPROM_DATA.B_Zero_offset*1000000000);
 	Calibration_half=(int)(EEPROM_DATA.B_Half_offset*1000000000);
 	Calibration_return.Calibration_zero[0]=(Calibration_zero&0xff000000)>>24;
@@ -47,11 +57,16 @@ void Return_Channel_Offset(void)
 	Calibration_return.Calibration_half[2]=(Calibration_half&0x0000ff00)>>8;
 	Calibration_return.Calibration_half[3]=Calibration_half&0x000000ff;
 	Calibration_return.Channel=0x02;
-	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));
-	Delay(500);
+	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));	
+}
+//返回C通道校准结果
+void Return_ChannelC_Offset(void)
+{
+	Calibration_return_tagdef Calibration_return;
+	int Calibration_zero=0,Calibration_half=0;	
+	//读取校准参数    21			
 	
-		
-	
+	Calibration_return.Message_type=21;
 	Calibration_zero=(int)(EEPROM_DATA.C_Zero_offset*1000000000);
 	Calibration_half=(int)(EEPROM_DATA.C_Half_offset*1000000000);
 	Calibration_return.Calibration_zero[0]=(Calibration_zero&0xff000000)>>24;
@@ -65,10 +80,15 @@ void Return_Channel_Offset(void)
 	Calibration_return.Calibration_half[3]=Calibration_half&0x000000ff;
 	Calibration_return.Channel=0x04;
 	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));
-	Delay(500);
+}
+//返回D通道校准结果
+void Return_ChannelD_Offset(void)
+{
+	Calibration_return_tagdef Calibration_return;
+	int Calibration_zero=0,Calibration_half=0;
+	//读取校准参数    21	
 	
-		
-	
+	Calibration_return.Message_type=21;
 	Calibration_zero=(int)(EEPROM_DATA.D_Zero_offset*1000000000);
 	Calibration_half=(int)(EEPROM_DATA.D_Half_offset*1000000000);
 	Calibration_return.Calibration_zero[0]=(Calibration_zero&0xff000000)>>24;
@@ -81,12 +101,8 @@ void Return_Channel_Offset(void)
 	Calibration_return.Calibration_half[2]=(Calibration_half&0x0000ff00)>>8;
 	Calibration_return.Calibration_half[3]=Calibration_half&0x000000ff;
 	Calibration_return.Channel=0x08;
-	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));
-	Delay(500);
-	
-	
+	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));	
 }
-
 
 /*******************************************************************************
 * Function Name  : Return_Channel_CFG
