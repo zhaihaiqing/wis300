@@ -186,8 +186,9 @@ void EXTI15_10_IRQHandler(void)
 {
   if(EXTI_GetITStatus(EXTI_Line10) != RESET)
   {
-		Ch_A_DATA.Sample_Flag=1;
+		Ch_A_DATA.Sample_Flag=1;					//如果是A通道产的的中断    ，置位标志位
 		if(  (Ch_A_DATA.Count==0) && (Send_Flag_TPA==0)  ) {Send_Flag_TPA = 0x01;GPIO_SetBits(GPIOB,GPIO_Pin_3);}
+		///如果是一包数据中的第一个中断，且没有别的通道向TPA发送中断，则产生中断
 		GPIO_PinReverse(GPIOB,GPIO_Pin_15);
     /* Clear the EXTI line 10 pending bit */
     EXTI_ClearITPendingBit(EXTI_Line10);
@@ -281,23 +282,10 @@ void TIM2_IRQHandler(void)
 	 if(TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
 	 {
 			TIM_ClearITPendingBit(TIM2 , TIM_FLAG_Update);
-			//GPIO_PinReverse(GPIOB,GPIO_Pin_14);
 		  GPIOB->ODR ^= GPIO_Pin_14;
    }
 }
 
-//void TIM3_IRQHandler(void)
-//{
-//	if(TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)
-//	{
-//			//TIM3->SR&=~(1<<0);//清楚TIM3中断标志位
-//		  TIM_ClearITPendingBit(TIM3 , TIM_FLAG_Update);
-//			TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE );
-//			TIM_Cmd(TIM3, DISABLE);
-//			Send_Flag_TPA=0;
-//			GPIO_ResetBits(GPIOB,GPIO_Pin_3);
-//	 }
-//}
 
 
 void TIM6_IRQHandler(void)

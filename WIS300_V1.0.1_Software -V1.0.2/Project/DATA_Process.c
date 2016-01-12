@@ -119,7 +119,7 @@ void ADS1248_Sample(unsigned char Ch)
 		default:
 			break;
 	}
-	adc=ADS1248_ReadData();
+	adc=ADS1248_ReadData();///读取ADS1248数据
 	//此处加滤波
 	adcV=((float)adc/0x7fffff)*2.0477;//采样电压值变换
 	if(HalfSubZero<0)HalfSubZero=0-HalfSubZero;
@@ -132,9 +132,9 @@ void ADS1248_Sample(unsigned char Ch)
 					strainVal=(strainVal*5000000)/HalfSubZero;//半量程修正			
 			break;
 		case 0x0c:
-					strainVal=adcV*384400/(122616.276*K_Val);																 //应变值转换
+					strainVal=adcV*384400/(122616.276*K_Val);				//应变值转换
 					strainVal=strainVal/PGA_Gain;
-					strainVal=strainVal*1000-Zero_offset;	//此处X1000是应为K值放大了1000倍																					 //修正0点	
+					strainVal=strainVal*1000-Zero_offset;	//此处X1000是应为K值放大了1000倍						//修正0点	
 					strainVal=strainVal*5000000/HalfSubZero;//半量程修正		
 			break;
 		case 0x04:
@@ -155,7 +155,7 @@ void ADS1248_Sample(unsigned char Ch)
 					}
 			break;
 		case 0x20:
-					strainVal=adcV*57600/(29486.88*K_Val);				//应变值转换
+					strainVal=adcV*57600/(29486.88*K_Val);		//应变值转换
 					strainVal=strainVal/PGA_Gain;
 					strainVal=strainVal/4;
 					strainVal=strainVal*1000000000000;
@@ -295,7 +295,7 @@ void Sample_Instruction_Control(void)
 		GPIOA->BSRRH=GPIO_Pin_1;
 	}
 	ADS1248_WriteReg(ADS_SYS0, (3-Sample_Control.Sample_Rate) | 0x70);//配置采样速率
-	ADS1248_WriteByte(ADS_RDATAC);
+	ADS1248_WriteByte(ADS_RDATAC);							          //发送开始转换指令
 	ADS1248_CS(0x00);
 	
 	if(Sample_Control.Ch_Select & Ch_A_ID)A_Ch_START;
@@ -312,7 +312,7 @@ void Sample_Instruction_Control(void)
 			Delay(210);//等待数据转换完成
 			if(Ch_A_DATA.Sample_Flag)
 									{	
-											A_Ch_STOP;//屏蔽通道A中断
+											A_Ch_STOP;				//屏蔽通道A中断
 											Ch_A_DATA.Sample_Flag=0;//清零采样标志位
 											Ch_A_DATA.Count++;			//采样次数计数器+1
 											ADS1248_Sample(Ch_A_ID);//读取A通道
@@ -373,19 +373,21 @@ void Sample_Instruction_Control(void)
 	{	
 		if(Sample_Control.Sample_Time==0x00)//一直采样
 		{
-			SampleTime_Flag=0;//清零SYStick标志位
-			SampleTime=1;
+			SampleTime_Flag=0;//不使用SYStick标志位
+			SampleTime=1;	//时间设为1，一直采样
 		}
 		if(Sample_Control.Sample_Time != 0x00)//按时长采样
 		{
-			SampleTime_Flag=1;
-			SampleTime=Sample_Control.Sample_Time;
+			SampleTime_Flag=1;//使用SYStick计时
+			SampleTime=Sample_Control.Sample_Time;//设置采样时长
 		}
 #ifdef	Debug_EN
 		printf("Sampling,Please waiting...\r\n");
 #endif
 		while(SampleTime)
 		{
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+			////以下代码：用于在采样过程中，TPA查询协处理器配置
 				if(TpaCommand_Sampling_Flag)
 				{
 					if(FirstReadUart_Flag == 0x00)
@@ -422,27 +424,21 @@ void Sample_Instruction_Control(void)
 													{
 														case 1:
 															Return_Channel_CFG();
-															//printf("1\r\n");
 														break;
 														case 2:
 															Return_ChannelA_Offset();
-															//printf("2\r\n");
 														break;
 														case 3:
 															Return_ChannelB_Offset();
-															//printf("3\r\n");
 														break;
 														case 4:
 															Return_ChannelC_Offset();
-															//printf("4\r\n");
 														break;
 														case 5:
 															Return_ChannelD_Offset();
-															//printf("5\r\n");
 														break;
 														case 6:
 															Return_Ack(REQUEST_CFG_AND_CALIBRATION,SUCCESSFUL_EXECUTION);
-															//printf("6\r\n");
 															//清零标志位，放在ACK发送之后
 															FirstReadUart_Flag=0x00;
 															TpaCommandLen = 0;//先清理数据长度
@@ -487,14 +483,16 @@ void Sample_Instruction_Control(void)
 													break;
 						}
 					}
-				}		
+				}
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////		
 				//思想：以固定通道来确定同步信号，以最先产生中断信号的通道作为标志实现拉高拉低中断信号
-				if(Ch_A_DATA.Sample_Flag)
+				
+				if(Ch_A_DATA.Sample_Flag)			//如果是A通道来的中断
 										{
-												//判断是否已经向TPA发送中断，没有发送则发送，否则不发送
-												Ch_A_DATA.Sample_Flag=0;//清零标志位
-												Ch_A_DATA.Count++;
-												ADS1248_Sample(Ch_A_ID);												
+												Ch_A_DATA.Sample_Flag=0;//清零A通道采样完成标志位
+												Ch_A_DATA.Count++;		//数据位+1
+												ADS1248_Sample(Ch_A_ID);//读取并处理A通道数据											
 										}						
 				if(Ch_B_DATA.Sample_Flag)
 										{
@@ -515,13 +513,13 @@ void Sample_Instruction_Control(void)
 												ADS1248_Sample(Ch_D_ID);												
 										}
 										
-				if(Sample_Control.Ch_DATASize==Ch_A_DATA.Count)
+				if(Sample_Control.Ch_DATASize==Ch_A_DATA.Count)    //如果已经采够一包数据
 				{
-												Ch_A_DATA.Count=0;//清零采样计数器
-												Return_SampleData(Ch_A_ID,Sample_Control.Ch_DATASize);//返回数据
-												Clear_Flag_TPA |= 0x01;
+												Ch_A_DATA.Count=0; //清零采样计数器
+												Return_SampleData(Ch_A_ID,Sample_Control.Ch_DATASize);//向TPA发送数据
+												Clear_Flag_TPA |= 0x01;								  //置位A通道数据已经发送完成
 				}
-				if(   Ch_A_ID & Clear_Flag_TPA & Send_Flag_TPA  )
+				if(   Ch_A_ID & Clear_Flag_TPA & Send_Flag_TPA  )			//如果是A通道向TPA发送的中断，且A通道数据已经发送完成，清零中断及标志位
 				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
 		
 				if(Sample_Control.Ch_DATASize==Ch_B_DATA.Count)

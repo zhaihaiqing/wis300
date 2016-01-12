@@ -108,7 +108,7 @@ int main(void)
 	NVIC_TIM6_Configuration();//TIM6中断配置
 	GPIO_Configuration();//GPIO
 	SPI1_Configuration();
-	UART1_Configuration(57600);//UART1 与TPX通讯
+	UART1_Configuration(100000);//UART1 与TPX通讯
 #ifdef  Debug_EN
 	UART2_Configuration(256000);//UART2  调试打印
 #endif
