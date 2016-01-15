@@ -3,8 +3,10 @@
 
 unsigned char FirstReadUart_Flag=0x00;
 unsigned char ReturnData_Count=0x00;
-__IO unsigned char FrameDataReceived=0;
-__IO unsigned char DMASendDataCompleted=1;
+__IO unsigned char FrameDataReceived=0;		//定义帧数据接收标志位
+__IO unsigned char DMASendDataCompleted=1;//定义DMA传输完成标志位
+
+unsigned char SendCfgAtSampling=0;		//定义采样中查询标志位
 
 /*******************************************************************************
 * Function Name  : Filter_A\B\C\D
@@ -182,18 +184,14 @@ void ADS1248_Sample(unsigned char Ch)
 	}
 	switch(Ch)
 	{
-		case Ch_A_ID:
-				 Ch_A_DATA.Ch_DATAbuf[count-1]=strainVal;break;
-		case Ch_B_ID:
-				 Ch_B_DATA.Ch_DATAbuf[count-1]=strainVal;break;
-		case Ch_C_ID:
-				 Ch_C_DATA.Ch_DATAbuf[count-1]=strainVal;break;
-		case Ch_D_ID:
-				 Ch_D_DATA.Ch_DATAbuf[count-1]=strainVal;break;
-		default:
-			break;
+		case Ch_A_ID:Ch_A_DATA.Ch_DATAbuf[count-1]=strainVal;break;				 
+		case Ch_B_ID:Ch_B_DATA.Ch_DATAbuf[count-1]=strainVal;break;				 
+		case Ch_C_ID:Ch_C_DATA.Ch_DATAbuf[count-1]=strainVal;break;				
+		case Ch_D_ID:Ch_D_DATA.Ch_DATAbuf[count-1]=strainVal;break;	 
+		default:break;			
 	}
 }
+
 /*******************************************************************************
 * Function Name  : Channel_CFG_Check
 * Description    : 在采样前检查通道是否配置
@@ -280,22 +278,11 @@ void Sample_Instruction_Control(void)
 //测量速度可选择5、10、 20、40、80、160、320、640、1000、2000SPS
 //配置采样速度
 	Return_Ack(SAMPLE_INSTRUCTION,SUCCESSFUL_EXECUTION);
-	if(Sample_Control.Ch_Select & Ch_A_ID)
-	{
-		GPIOA->BSRRH=GPIO_Pin_4;
-	}
-	if(Sample_Control.Ch_Select & Ch_B_ID)
-	{
-		GPIOC->BSRRH=GPIO_Pin_15;
-	}
-	if(Sample_Control.Ch_Select & Ch_C_ID)
-	{
-		GPIOA->BSRRH=GPIO_Pin_0;
-	}
-	if(Sample_Control.Ch_Select & Ch_D_ID)
-	{
-		GPIOA->BSRRH=GPIO_Pin_1;
-	}
+	if(Sample_Control.Ch_Select & Ch_A_ID)GPIOA->BSRRH=GPIO_Pin_4;
+	if(Sample_Control.Ch_Select & Ch_B_ID)GPIOC->BSRRH=GPIO_Pin_15;
+	if(Sample_Control.Ch_Select & Ch_C_ID)GPIOA->BSRRH=GPIO_Pin_0;
+	if(Sample_Control.Ch_Select & Ch_D_ID)GPIOA->BSRRH=GPIO_Pin_1;
+	
 	ADS1248_WriteReg(ADS_SYS0, (3-Sample_Control.Sample_Rate) | 0x70);//配置采样速率
 	ADS1248_WriteByte(ADS_RDATAC);							          //发送开始转换指令
 	ADS1248_CS(0x00);
@@ -309,65 +296,24 @@ void Sample_Instruction_Control(void)
 	if(Sample_Control.Sample_Type == 0x00)
 	{		
 			Sample_Control.Ch_DATASize=1;
-//			while(! (Ch_A_DATA.Sample_Flag | Ch_B_DATA.Sample_Flag  | \
-//							 Ch_C_DATA.Sample_Flag | Ch_D_DATA.Sample_Flag) ) ;//等待数据转换完成
 			Delay(210);//等待数据转换完成
-			if(Ch_A_DATA.Sample_Flag)
-									{	
-											A_Ch_STOP;				//屏蔽通道A中断
-											Ch_A_DATA.Sample_Flag=0;//清零采样标志位
-											Ch_A_DATA.Count++;			//采样次数计数器+1
-											ADS1248_Sample(Ch_A_ID);//读取A通道
-											ADS1248_WriteByte(ADS_SDATAC);//发送停止采样命令
-									}
-			if(Ch_B_DATA.Sample_Flag)
-									{
-											B_Ch_STOP;											
-											Ch_B_DATA.Sample_Flag=0;
-											Ch_B_DATA.Count++;
-											ADS1248_Sample(Ch_B_ID);
-											ADS1248_WriteByte(ADS_SDATAC);
-									}
-			if(Ch_C_DATA.Sample_Flag)
-									{
-											C_Ch_STOP;											
-											Ch_C_DATA.Sample_Flag=0;
-											Ch_C_DATA.Count++;
-											ADS1248_Sample(Ch_C_ID);
-											ADS1248_WriteByte(ADS_SDATAC);
-									}
-			if(Ch_D_DATA.Sample_Flag)
-									{
-											D_Ch_STOP;											
-											Ch_D_DATA.Sample_Flag=0;
-											Ch_D_DATA.Count++;
-											ADS1248_Sample(Ch_D_ID);
-											ADS1248_WriteByte(ADS_SDATAC);
-									}														
-			
-			Return_SampleData(Sample_Control.Ch_DATASize);//返回结果值
-												
-									
-							
+			if(Ch_A_DATA.Sample_Flag){A_Ch_STOP;Ch_A_DATA.Sample_Flag=0;Ch_A_DATA.Count++;ADS1248_Sample(Ch_A_ID);ADS1248_WriteByte(ADS_SDATAC);}//屏蔽通道A中断//清零采样标志位//采样次数计数器+1//读取A通道//发送停止采样命令
+			if(Ch_B_DATA.Sample_Flag){B_Ch_STOP;Ch_B_DATA.Sample_Flag=0;Ch_B_DATA.Count++;ADS1248_Sample(Ch_B_ID);ADS1248_WriteByte(ADS_SDATAC);}						
+			if(Ch_C_DATA.Sample_Flag){C_Ch_STOP;Ch_C_DATA.Sample_Flag=0;Ch_C_DATA.Count++;ADS1248_Sample(Ch_C_ID);ADS1248_WriteByte(ADS_SDATAC);}
+			if(Ch_D_DATA.Sample_Flag){D_Ch_STOP;Ch_D_DATA.Sample_Flag=0;Ch_D_DATA.Count++;ADS1248_Sample(Ch_D_ID);ADS1248_WriteByte(ADS_SDATAC);}
+			Return_SampleData(Sample_Control.Ch_DATASize);//返回结果值				
 #ifdef	Debug_EN
 			printf("Sampling has been completed...\r\n");
 #endif
 			GPIO_SetBits(GPIOB,GPIO_Pin_15);
 	    return;
-}
-	//非单次采样
+	}
+//非单次采样
 	if( Sample_Control.Sample_Type == 0x01 )
 	{	
-		if(Sample_Control.Sample_Time==0x00)//一直采样
-		{
-			SampleTime_Flag=0;//不使用SYStick标志位
-			SampleTime=1;	//时间设为1，一直采样
-		}
-		if(Sample_Control.Sample_Time != 0x00)//按时长采样
-		{
-			SampleTime_Flag=1;//使用SYStick计时
-			SampleTime=Sample_Control.Sample_Time;//设置采样时长
-		}
+		if(Sample_Control.Sample_Time==0x00){SampleTime_Flag=0;SampleTime=1;}//一直采样//不使用SYStick标志位//时间设为1，一直采样
+		if(Sample_Control.Sample_Time != 0x00){SampleTime_Flag=1;SampleTime=Sample_Control.Sample_Time;}//按时长采样//使用SYStick计时//设置采样时长
+	
 #ifdef	Debug_EN
 		printf("Sampling,Please waiting...\r\n");
 #endif
@@ -382,218 +328,88 @@ void Sample_Instruction_Control(void)
 					 data_p = get_active_message(&data_len);//确保进来后只读取一次串口数据
 					 FirstReadUart_Flag=0x01;
 					}						
-					if(*(data_p+6)==0xa1)
+					if( (*(data_p+6)==0xa1) && (SendCfgAtSampling!=0) )//如果串口数据正常，且该标志位不为0，进入发送配置信息
 					{
-						ReturnData_Count++;
 						switch(*(data_p+7))//此处只提供查询功能
 						{
-							case 	 REQUEST_CHANNEL_CFG:			//查询通道配置信息01
-													switch(ReturnData_Count)
-													{
-														case 1:
-															Return_Channel_CFG();
-														break;
-														case 2:
-															Return_Ack(REQUEST_CHANNEL_CFG,SUCCESSFUL_EXECUTION);
-															//清零标志位，放在ACK发送之后
-															FirstReadUart_Flag=0x00;
-															TpaCommandLen = 0;//先清理数据长度
-															TpaCommand_Sampling_Flag = 0;//清零标志位
-															USART1_ClearBuf();//清空串口缓存
-															ReturnData_Count=0;
-														break;
-														default:
-															break;
-													}
-													break;
-							case   REQUEST_CFG_AND_CALIBRATION:		//查询通道配置参数及校准参数  05
-													switch(ReturnData_Count)
-													{
-														case 1:
-															Return_Channel_CFG();
-														break;
-														case 2:
-															Return_ChannelA_Offset();
-														break;
-														case 3:
-															Return_ChannelB_Offset();
-														break;
-														case 4:
-															Return_ChannelC_Offset();
-														break;
-														case 5:
-															Return_ChannelD_Offset();
-														break;
-														case 6:
-															Return_Ack(REQUEST_CFG_AND_CALIBRATION,SUCCESSFUL_EXECUTION);
-															//清零标志位，放在ACK发送之后
-															FirstReadUart_Flag=0x00;
-															TpaCommandLen = 0;//先清理数据长度
-															TpaCommand_Sampling_Flag = 0;//清零标志位
-															USART1_ClearBuf();//清空串口缓存
-															ReturnData_Count=0;
-														break;
-														default:
-															break;
-														
-													}
-													break;
-							case 	 REQUEST_CALIBRATION_VAL:		//读取校准参数   21
-													switch(ReturnData_Count)
-													{
-														case 1:
-															Return_ChannelA_Offset();
-														break;
-														case 2:
-															Return_ChannelB_Offset();
-														break;
-														case 3:
-															Return_ChannelC_Offset();
-														break;
-														case 4:
-															Return_ChannelD_Offset();
-														break;
-														case 5:
-															Return_Ack(REQUEST_CALIBRATION_VAL,SUCCESSFUL_EXECUTION);
-															//清零标志位，放在ACK发送之后
-															FirstReadUart_Flag=0x00;
-															TpaCommandLen = 0;//先清理数据长度
-															TpaCommand_Sampling_Flag = 0;//清零标志位
-															USART1_ClearBuf();//清空串口缓存
-															ReturnData_Count=0;
-														break;
-														default:
-															break;
-													}
-													break;
-							default:														
-													break;
+							case  REQUEST_CHANNEL_CFG:	//查询通道配置信息01
+										switch(ReturnData_Count)
+										{
+											case 1: Return_Channel_CFG();break;
+											case 2: Return_Ack(REQUEST_CHANNEL_CFG,SUCCESSFUL_EXECUTION);
+													//清零标志位，放在ACK发送之后//先清理数据长度//清零标志位//清空串口缓存
+													FirstReadUart_Flag=0x00;TpaCommandLen = 0;TpaCommand_Sampling_Flag = 0;USART1_ClearBuf();ReturnData_Count=0;break;										
+											default:break;		
+										}
+										break;
+							case  REQUEST_CFG_AND_CALIBRATION:		//查询通道配置参数及校准参数  05
+										switch(ReturnData_Count)
+										{
+											case 1: Return_Ack(REQUEST_CHANNEL_CFG,SUCCESSFUL_EXECUTION);SendCfgAtSampling=0;break;
+											case 2: Return_Channel_CFG();SendCfgAtSampling=0;break;								
+											case 3: Return_ChannelA_Offset();SendCfgAtSampling=0;break;			
+											case 4: Return_ChannelB_Offset();SendCfgAtSampling=0;break;						
+											case 5: Return_ChannelC_Offset();SendCfgAtSampling=0;break;
+											case 6: Return_ChannelD_Offset();SendCfgAtSampling=0;break;																										
+											case 7: Return_Ack(REQUEST_CFG_AND_CALIBRATION,SUCCESSFUL_EXECUTION);
+													//清零标志位，放在ACK发送之后//先清理数据长度//清零标志位//清空串口缓存
+													FirstReadUart_Flag=0x00;TpaCommandLen = 0;TpaCommand_Sampling_Flag = 0;ReturnData_Count=0;SendCfgAtSampling=0;USART1_ClearBuf();break;														
+											default: break;	
+										}
+										break;
+							case  REQUEST_CALIBRATION_VAL:		//读取校准参数  21
+										switch(ReturnData_Count)
+										{
+											case 1: Return_ChannelA_Offset();break;
+											case 2:	Return_ChannelB_Offset();break;
+											case 3: Return_ChannelC_Offset();break;
+											case 4: Return_ChannelD_Offset();break;
+											case 5:	Return_Ack(REQUEST_CALIBRATION_VAL,SUCCESSFUL_EXECUTION);
+													//清零标志位，放在ACK发送之后//先清理数据长度//清零标志位//清空串口缓存
+													FirstReadUart_Flag=0x00;TpaCommandLen = 0;TpaCommand_Sampling_Flag = 0;USART1_ClearBuf();ReturnData_Count=0;break;														
+											default: break;		
+										}
+										break;
+							default:		break;																
 						}
 					}
 				}
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////		
 				//思想：以固定通道来确定同步信号，以最先产生中断信号的通道作为标志实现拉高拉低中断信号
-				
-				
-				
+
 				if( (Send_Flag_TPA != 0) && (FrameDataReceived == Sample_Control.Ch_Select) )//已经向TPA发送过中断，然后想TPA发送数据
 				{
-					GPIO_SetBits(GPIOB,GPIO_Pin_3);
-					Delay(1);
-					Return_SampleData(Sample_Control.Ch_DATASize);//向TPA发送数据					
+					GPIO_SetBits(GPIOB,GPIO_Pin_3);Delay(1);//向TPA发送中断//延时1ms，避免TPA处理不过来
+					Return_SampleData(Sample_Control.Ch_DATASize);//向TPA发送数据
 						
-					Send_Flag_TPA=0;
-					FrameDataReceived=0;
+					Send_Flag_TPA=0;FrameDataReceived=0; //清零标志位
+					if(TpaCommand_Sampling_Flag)		//在数据包直接，分次将查询信息发送给TPA
+						{
+							while(DMASendDataCompleted);//等待DMA数据传输完成
+							DMASendDataCompleted=1;
+							Delay(2);					//延时2ms确保TPA能够处理完
+							ReturnData_Count++;
+							SendCfgAtSampling=1;		//置位标志位
+						}
 				}
 				
-				
-				
-				if(Ch_A_DATA.Sample_Flag)			//如果是A通道来的中断
-										{
-												Ch_A_DATA.Sample_Flag=0;//清零A通道采样完成标志位
-												Ch_A_DATA.Count++;		//数据位+1
-												ADS1248_Sample(Ch_A_ID);//读取并处理A通道数据											
-										}						
-				if(Ch_B_DATA.Sample_Flag)
-										{
-												Ch_B_DATA.Sample_Flag=0;
-												Ch_B_DATA.Count++;
-												ADS1248_Sample(Ch_B_ID);												
-										}						
-				if(Ch_C_DATA.Sample_Flag)
-										{
-												Ch_C_DATA.Sample_Flag=0;
-												Ch_C_DATA.Count++;
-												ADS1248_Sample(Ch_C_ID);												
-										}					
-				if(Ch_D_DATA.Sample_Flag)
-										{
-												Ch_D_DATA.Sample_Flag=0;
-												Ch_D_DATA.Count++;
-												ADS1248_Sample(Ch_D_ID);												
-										}
-										
-				if(Sample_Control.Ch_DATASize==Ch_A_DATA.Count)    //如果已经采够一包数据
-				{
-												Ch_A_DATA.Count=0; //清零采样计数器
-												FrameDataReceived |= 0x01;
-												//Return_SampleData(Ch_A_ID,Sample_Control.Ch_DATASize);
-												//Clear_Flag_TPA |= 0x01;								  //置位A通道数据已经发送完成
-				}
-//				if(   Ch_A_ID & Clear_Flag_TPA & Send_Flag_TPA  )			//如果是A通道向TPA发送的中断，且A通道数据已经发送完成，清零中断及标志位
-//				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
-		
-				if(Sample_Control.Ch_DATASize==Ch_B_DATA.Count)
-				{
-												Ch_B_DATA.Count=0;
-												FrameDataReceived |= 0x02;
-												//Return_SampleData(Ch_B_ID,Sample_Control.Ch_DATASize);
-												//Clear_Flag_TPA |= 0x02;
-				}
-//				if(   Ch_B_ID & Clear_Flag_TPA & Send_Flag_TPA   )
-//				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
-		
-				if(Sample_Control.Ch_DATASize==Ch_C_DATA.Count)
-										{
-												Ch_C_DATA.Count=0;
-												FrameDataReceived |= 0x04;
-												//Return_SampleData(Ch_C_ID,Sample_Control.Ch_DATASize);
-												//Clear_Flag_TPA |= 0x04;
-										}
-//				if(   Ch_C_ID & Clear_Flag_TPA & Send_Flag_TPA   )
-//				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
-		
-				if(Sample_Control.Ch_DATASize==Ch_D_DATA.Count)
-										{
-												Ch_D_DATA.Count=0;
-												FrameDataReceived |= 0x08;
-												//Return_SampleData(Ch_D_ID,Sample_Control.Ch_DATASize);
-												//Clear_Flag_TPA |= 0x08;
-										}
-										
-//				if(   Ch_D_ID & Clear_Flag_TPA & Send_Flag_TPA   )
-//				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
-//				
-				
-			
-				
-				
+				if(Ch_A_DATA.Sample_Flag){Ch_A_DATA.Sample_Flag=0;Ch_A_DATA.Count++;ADS1248_Sample(Ch_A_ID);}//如果是A通道来的中断//清零A通道采样完成标志位//数据位+1//读取并处理A通道数据												
+				if(Ch_B_DATA.Sample_Flag){Ch_B_DATA.Sample_Flag=0;Ch_B_DATA.Count++;ADS1248_Sample(Ch_B_ID);}						
+				if(Ch_C_DATA.Sample_Flag){Ch_C_DATA.Sample_Flag=0;Ch_C_DATA.Count++;ADS1248_Sample(Ch_C_ID);}					
+				if(Ch_D_DATA.Sample_Flag){Ch_D_DATA.Sample_Flag=0;Ch_D_DATA.Count++;ADS1248_Sample(Ch_D_ID);}
+					
+				if(Sample_Control.Ch_DATASize==Ch_A_DATA.Count){Ch_A_DATA.Count=0;FrameDataReceived |= 0x01;}//如果已经采够一包数据//清零采样计数器	
+				if(Sample_Control.Ch_DATASize==Ch_B_DATA.Count){Ch_B_DATA.Count=0;FrameDataReceived |= 0x02;}
+				if(Sample_Control.Ch_DATASize==Ch_C_DATA.Count){Ch_C_DATA.Count=0;FrameDataReceived |= 0x04;}
+				if(Sample_Control.Ch_DATASize==Ch_D_DATA.Count){Ch_D_DATA.Count=0;FrameDataReceived |= 0x08;}							
 		}	
-		//Clear_Flag_TPA=0;
 		SampleTime_Flag=0;
-		if(Sample_Control.Ch_Select & Ch_A_ID)
-		{
-			A_Ch_STOP;//屏蔽中断
-			Ch_A_DATA.Sample_Flag=0;//清零标志位
-			ADS1248_CS(Ch_A_ID);//拉低片选
-			ADS1248_WriteByte(ADS_SDATAC);//发送停止采样命令
-			Ch_A_DATA.Count=0;//清零采样计数器
-		}
-		if(Sample_Control.Ch_Select & Ch_B_ID)
-		{
-			B_Ch_STOP;
-			Ch_B_DATA.Sample_Flag=0;
-			ADS1248_CS(Ch_B_ID);
-			ADS1248_WriteByte(ADS_SDATAC);
-			Ch_B_DATA.Count=0;
-		}
-		if(Sample_Control.Ch_Select & Ch_C_ID)
-		{
-			C_Ch_STOP;
-			Ch_C_DATA.Sample_Flag=0;
-			ADS1248_CS(Ch_C_ID);
-			ADS1248_WriteByte(ADS_SDATAC);
-			Ch_C_DATA.Count=0;			
-		}
-		if(Sample_Control.Ch_Select & Ch_D_ID)
-		{
-			D_Ch_STOP;
-			Ch_D_DATA.Sample_Flag=0;
-			ADS1248_CS(Ch_D_ID);
-			ADS1248_WriteByte(ADS_SDATAC);
-			Ch_D_DATA.Count=0;
-		}		
+		if(Sample_Control.Ch_Select & Ch_A_ID){A_Ch_STOP;Ch_A_DATA.Sample_Flag=0;ADS1248_CS(Ch_A_ID);ADS1248_WriteByte(ADS_SDATAC);Ch_A_DATA.Count=0;}//屏蔽中断//清零标志位//拉低片选//发送停止采样命令//清零采样计数器
+		if(Sample_Control.Ch_Select & Ch_B_ID){B_Ch_STOP;Ch_B_DATA.Sample_Flag=0;ADS1248_CS(Ch_B_ID);ADS1248_WriteByte(ADS_SDATAC);Ch_B_DATA.Count=0;}
+		if(Sample_Control.Ch_Select & Ch_C_ID){C_Ch_STOP;Ch_C_DATA.Sample_Flag=0;ADS1248_CS(Ch_C_ID);ADS1248_WriteByte(ADS_SDATAC);Ch_C_DATA.Count=0;}	
+		if(Sample_Control.Ch_Select & Ch_D_ID){D_Ch_STOP;Ch_D_DATA.Sample_Flag=0;ADS1248_CS(Ch_D_ID);ADS1248_WriteByte(ADS_SDATAC);Ch_D_DATA.Count=0;}
+
 #ifdef	Debug_EN
 		printf("Sampling has been completed...\r\n");
 #endif
@@ -605,21 +421,6 @@ void Sample_Instruction_Control(void)
 	}	
 }
 
+
  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -11,17 +11,9 @@
 void Return_Channel_Offset(void)
 {
 	Return_ChannelA_Offset();
-	while(DMASendDataCompleted);
-	DMASendDataCompleted=1;
 	Return_ChannelB_Offset();
-	while(DMASendDataCompleted);
-	DMASendDataCompleted=1;
 	Return_ChannelC_Offset();
-	while(DMASendDataCompleted);
-	DMASendDataCompleted=1;
 	Return_ChannelD_Offset();	
-	while(DMASendDataCompleted);
-	DMASendDataCompleted=1;
 }
 //返回A通道校准结果
 void Return_ChannelA_Offset(void)
@@ -37,13 +29,15 @@ void Return_ChannelA_Offset(void)
 	Calibration_return.Calibration_zero[1]=(Calibration_zero&0x00ff0000)>>16;
 	Calibration_return.Calibration_zero[2]=(Calibration_zero&0x0000ff00)>>8;
 	Calibration_return.Calibration_zero[3]=Calibration_zero&0x000000ff;
-	
 	Calibration_return.Calibration_half[0]=(Calibration_half&0xff000000)>>24;
 	Calibration_return.Calibration_half[1]=(Calibration_half&0x00ff0000)>>16;
 	Calibration_return.Calibration_half[2]=(Calibration_half&0x0000ff00)>>8;
 	Calibration_return.Calibration_half[3]=Calibration_half&0x000000ff;
 	Calibration_return.Channel=0x01;
 	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));
+	
+	while(DMASendDataCompleted);
+	DMASendDataCompleted=1;
 }
 //返回B通道校准结果
 void Return_ChannelB_Offset(void)
@@ -66,6 +60,9 @@ void Return_ChannelB_Offset(void)
 	Calibration_return.Calibration_half[3]=Calibration_half&0x000000ff;
 	Calibration_return.Channel=0x02;
 	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));	
+	
+	while(DMASendDataCompleted);
+	DMASendDataCompleted=1;
 }
 //返回C通道校准结果
 void Return_ChannelC_Offset(void)
@@ -88,6 +85,9 @@ void Return_ChannelC_Offset(void)
 	Calibration_return.Calibration_half[3]=Calibration_half&0x000000ff;
 	Calibration_return.Channel=0x04;
 	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));
+	
+	while(DMASendDataCompleted);
+	DMASendDataCompleted=1;
 }
 //返回D通道校准结果
 void Return_ChannelD_Offset(void)
@@ -109,7 +109,11 @@ void Return_ChannelD_Offset(void)
 	Calibration_return.Calibration_half[2]=(Calibration_half&0x0000ff00)>>8;
 	Calibration_return.Calibration_half[3]=Calibration_half&0x000000ff;
 	Calibration_return.Channel=0x08;
+	
 	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));
+	
+	while(DMASendDataCompleted);
+	DMASendDataCompleted=1;
 }
 
 /*******************************************************************************
@@ -167,6 +171,7 @@ void Return_Channel_CFG(void)
 	Channel_CFG.Reserve2=0;
 	
 	SendDataTPA(&Channel_CFG.Message_type,sizeof(Channel_CFG));
+	
 	while(DMASendDataCompleted);
 	DMASendDataCompleted=1;
 }
@@ -221,6 +226,7 @@ void Return_SampleData(unsigned char Length)
 							unsigned int i;
 							send_message_prepare(0xa1);//在向TPA发送消息时，先发送此条信息
 							send_message_add(41);//单字节组包
+							send_message_add(Sample_Control.Ch_Select);
 							send_message_add(Length);//单字节组包
 							
 																				
