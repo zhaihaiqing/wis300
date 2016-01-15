@@ -100,6 +100,8 @@ void IWDG_INIT(uint32_t FeedTime)
 *******************************************************************************/
 int main(void)
 {
+	
+	unsigned char Test_i;
 	/******************外设配置***********************/
  	/* Configure the Priority Group to 2 bits */
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);//中断优先级分组
@@ -109,6 +111,7 @@ int main(void)
 	GPIO_Configuration();//GPIO
 	SPI1_Configuration();
 	UART1_Configuration(100000);//UART1 与TPX通讯
+	UART1TX_DMA_Configuration();
 #ifdef  Debug_EN
 	UART2_Configuration(256000);//UART2  调试打印
 #endif
@@ -137,20 +140,23 @@ int main(void)
 	printf("Hardware ready!\r\n");
 #endif		
 	
-//	send_message_prepare(0xa1);
-//	
-//	send_message_add(0x29);//单字节
-
-//	send_message_add(0x0f);//单字节
-//	send_message_add(0x00);//单字节
-//	send_message_add(0x01);//单字节
-//	send_message_add(0x00);//单字节
-//	send_message_add(0x00);//单字节
-//	send_message_add(0x06);//单字节
-//	send_message_add(0x00);//单字节
-//	send_message_add(0x00);//单字节
-//	send_message(1);
-//	
+		
+//	while(1){	
+//		send_message_prepare(0xa1);
+//		
+//		for(Test_i=0;Test_i<110;Test_i++)
+//			       send_message_add(Test_i);
+//		
+//		send_message(1);
+//		Delay(500);
+//		
+//	}
+//			
+//		
+		
+		
+		
+		
 	
 	while(1)
 	{

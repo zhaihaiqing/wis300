@@ -3,6 +3,8 @@
 
 unsigned char FirstReadUart_Flag=0x00;
 unsigned char ReturnData_Count=0x00;
+__IO unsigned char FrameDataReceived=0;
+__IO unsigned char DMASendDataCompleted=1;
 
 /*******************************************************************************
 * Function Name  : Filter_A\B\C\D
@@ -342,26 +344,11 @@ void Sample_Instruction_Control(void)
 											ADS1248_Sample(Ch_D_ID);
 											ADS1248_WriteByte(ADS_SDATAC);
 									}														
-			if(Sample_Control.Ch_DATASize==Ch_A_DATA.Count)
-									{
-												Return_SampleData(Ch_A_ID,Sample_Control.Ch_DATASize);//返回结果值
-												Ch_A_DATA.Count=0;//清零采样次数计数器
-									}//清零缓存
-			if(Sample_Control.Ch_DATASize==Ch_B_DATA.Count)
-									{
-												Return_SampleData(Ch_B_ID,Sample_Control.Ch_DATASize);
-												Ch_B_DATA.Count=0;
-									}
-			if(Sample_Control.Ch_DATASize==Ch_C_DATA.Count)
-									{
-												Return_SampleData(Ch_C_ID,Sample_Control.Ch_DATASize);
-												Ch_C_DATA.Count=0;
-									}
-			if(Sample_Control.Ch_DATASize==Ch_D_DATA.Count)
-									{
-												Return_SampleData(Ch_D_ID,Sample_Control.Ch_DATASize);
-												Ch_D_DATA.Count=0;
-									}										
+			
+			Return_SampleData(Sample_Control.Ch_DATASize);//返回结果值
+												
+									
+							
 #ifdef	Debug_EN
 			printf("Sampling has been completed...\r\n");
 #endif
@@ -488,6 +475,20 @@ void Sample_Instruction_Control(void)
 ///////////////////////////////////////////////////////////////////////////////////////////////		
 				//思想：以固定通道来确定同步信号，以最先产生中断信号的通道作为标志实现拉高拉低中断信号
 				
+				
+				
+				if( (Send_Flag_TPA != 0) && (FrameDataReceived == Sample_Control.Ch_Select) )//已经向TPA发送过中断，然后想TPA发送数据
+				{
+					GPIO_SetBits(GPIOB,GPIO_Pin_3);
+					Delay(1);
+					Return_SampleData(Sample_Control.Ch_DATASize);//向TPA发送数据					
+						
+					Send_Flag_TPA=0;
+					FrameDataReceived=0;
+				}
+				
+				
+				
 				if(Ch_A_DATA.Sample_Flag)			//如果是A通道来的中断
 										{
 												Ch_A_DATA.Sample_Flag=0;//清零A通道采样完成标志位
@@ -516,40 +517,50 @@ void Sample_Instruction_Control(void)
 				if(Sample_Control.Ch_DATASize==Ch_A_DATA.Count)    //如果已经采够一包数据
 				{
 												Ch_A_DATA.Count=0; //清零采样计数器
-												Return_SampleData(Ch_A_ID,Sample_Control.Ch_DATASize);//向TPA发送数据
-												Clear_Flag_TPA |= 0x01;								  //置位A通道数据已经发送完成
+												FrameDataReceived |= 0x01;
+												//Return_SampleData(Ch_A_ID,Sample_Control.Ch_DATASize);
+												//Clear_Flag_TPA |= 0x01;								  //置位A通道数据已经发送完成
 				}
-				if(   Ch_A_ID & Clear_Flag_TPA & Send_Flag_TPA  )			//如果是A通道向TPA发送的中断，且A通道数据已经发送完成，清零中断及标志位
-				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
+//				if(   Ch_A_ID & Clear_Flag_TPA & Send_Flag_TPA  )			//如果是A通道向TPA发送的中断，且A通道数据已经发送完成，清零中断及标志位
+//				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
 		
 				if(Sample_Control.Ch_DATASize==Ch_B_DATA.Count)
 				{
 												Ch_B_DATA.Count=0;
-												Return_SampleData(Ch_B_ID,Sample_Control.Ch_DATASize);
-												Clear_Flag_TPA |= 0x02;
+												FrameDataReceived |= 0x02;
+												//Return_SampleData(Ch_B_ID,Sample_Control.Ch_DATASize);
+												//Clear_Flag_TPA |= 0x02;
 				}
-				if(   Ch_B_ID & Clear_Flag_TPA & Send_Flag_TPA   )
-				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
+//				if(   Ch_B_ID & Clear_Flag_TPA & Send_Flag_TPA   )
+//				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
 		
 				if(Sample_Control.Ch_DATASize==Ch_C_DATA.Count)
 										{
 												Ch_C_DATA.Count=0;
-												Return_SampleData(Ch_C_ID,Sample_Control.Ch_DATASize);
-												Clear_Flag_TPA |= 0x04;
+												FrameDataReceived |= 0x04;
+												//Return_SampleData(Ch_C_ID,Sample_Control.Ch_DATASize);
+												//Clear_Flag_TPA |= 0x04;
 										}
-				if(   Ch_C_ID & Clear_Flag_TPA & Send_Flag_TPA   )
-				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
+//				if(   Ch_C_ID & Clear_Flag_TPA & Send_Flag_TPA   )
+//				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
 		
 				if(Sample_Control.Ch_DATASize==Ch_D_DATA.Count)
 										{
 												Ch_D_DATA.Count=0;
-												Return_SampleData(Ch_D_ID,Sample_Control.Ch_DATASize);
-												Clear_Flag_TPA |= 0x08;
+												FrameDataReceived |= 0x08;
+												//Return_SampleData(Ch_D_ID,Sample_Control.Ch_DATASize);
+												//Clear_Flag_TPA |= 0x08;
 										}
-				if(   Ch_D_ID & Clear_Flag_TPA & Send_Flag_TPA   )
-				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
+										
+//				if(   Ch_D_ID & Clear_Flag_TPA & Send_Flag_TPA   )
+//				{GPIO_ResetBits(GPIOB,GPIO_Pin_3);Send_Flag_TPA=0;Clear_Flag_TPA &=0x00; }//拉低TPA中断，清零发送中断标志位
+//				
+				
+			
+				
+				
 		}	
-		Clear_Flag_TPA=0;
+		//Clear_Flag_TPA=0;
 		SampleTime_Flag=0;
 		if(Sample_Control.Ch_Select & Ch_A_ID)
 		{

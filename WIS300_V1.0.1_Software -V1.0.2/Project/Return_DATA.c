@@ -11,9 +11,17 @@
 void Return_Channel_Offset(void)
 {
 	Return_ChannelA_Offset();
+	while(DMASendDataCompleted);
+	DMASendDataCompleted=1;
 	Return_ChannelB_Offset();
+	while(DMASendDataCompleted);
+	DMASendDataCompleted=1;
 	Return_ChannelC_Offset();
+	while(DMASendDataCompleted);
+	DMASendDataCompleted=1;
 	Return_ChannelD_Offset();	
+	while(DMASendDataCompleted);
+	DMASendDataCompleted=1;
 }
 //返回A通道校准结果
 void Return_ChannelA_Offset(void)
@@ -101,7 +109,7 @@ void Return_ChannelD_Offset(void)
 	Calibration_return.Calibration_half[2]=(Calibration_half&0x0000ff00)>>8;
 	Calibration_return.Calibration_half[3]=Calibration_half&0x000000ff;
 	Calibration_return.Channel=0x08;
-	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));	
+	SendDataTPA(&Calibration_return.Message_type,sizeof(Calibration_return));
 }
 
 /*******************************************************************************
@@ -159,6 +167,8 @@ void Return_Channel_CFG(void)
 	Channel_CFG.Reserve2=0;
 	
 	SendDataTPA(&Channel_CFG.Message_type,sizeof(Channel_CFG));
+	while(DMASendDataCompleted);
+	DMASendDataCompleted=1;
 }
 
 /*******************************************************************************
@@ -177,22 +187,24 @@ void Return_Ack(unsigned char Message_position,unsigned char Error_Message)
 	Ack.Reserve1=0x00;
 	Ack.Reserve2=0x00;
 	SendDataTPA(&Ack.Message_type,sizeof(Ack));
+	while(DMASendDataCompleted);
+	DMASendDataCompleted=1;
 }
 
 void SendDataTPA(unsigned  char *pr,unsigned char Length)
 {
 	unsigned char i;
 	if((!Length) &&(Length > 28))//数据长度不能大于28,否则总长度将大于40,包格式其他数据占用12字节
-  {
+    {
     //printf("%s(%d)data length error\r\n",__FILE__,__LINE__);
-    return;
-  }
+		return;
+    }
 	send_message_prepare(0xa1);
 	for(i = 0;i < Length;i++)
-  {
+   {
     send_message_add(*pr);//单字节
     pr++;
-  }
+   }
 	send_message(1);
 }
 
@@ -204,48 +216,65 @@ void DataPackage( int *pr)
 		send_message_add( ( unsigned char)( *pr      ) );//单字节组包
 }
 
-void Return_SampleData(unsigned char Channel_ID,unsigned char Length)
+void Return_SampleData(unsigned char Length)
 {
 							unsigned int i;
 							send_message_prepare(0xa1);//在向TPA发送消息时，先发送此条信息
 							send_message_add(41);//单字节组包
-							send_message_add(Channel_ID);//单字节组包	
-							for(i=0;i<Length;i++)
-							{													
-													if(Channel_ID==Ch_A_ID)
+							send_message_add(Length);//单字节组包
+							
+																				
+													if(Sample_Control.Ch_Select & Ch_A_ID)
 													{
-#ifdef  								 						Debug_EN														
-																		printf("%d [A]:%.3f\r\n",i+1, ((float)Ch_A_DATA.Ch_DATAbuf[i]/1000));
-#endif
-																		DataPackage(&Ch_A_DATA.Ch_DATAbuf[i]);
-																		Ch_A_DATA.Ch_DATAbuf[i]=0;
+//#ifdef  								 						Debug_EN														
+//																		printf("%d [A]:%.3f\r\n",i+1, ((float)Ch_A_DATA.Ch_DATAbuf[i]/1000));
+																		
+//#endif																
+																		send_message_add(Ch_A_ID);//单字节组包	
+																		for(i=0;i<Length;i++)
+																		{
+																			DataPackage(&Ch_A_DATA.Ch_DATAbuf[i]);
+																			Ch_A_DATA.Ch_DATAbuf[i]=0;
+																		}
 													}
-													else if(Channel_ID==Ch_B_ID)
+													if(Sample_Control.Ch_Select & Ch_B_ID)
 													{
-#ifdef  								 						Debug_EN														
-																		printf("%d [B]:%.3f\r\n",i+1, ((float)Ch_B_DATA.Ch_DATAbuf[i]/1000));
-#endif
-																		DataPackage(&Ch_B_DATA.Ch_DATAbuf[i]);
-																		Ch_B_DATA.Ch_DATAbuf[i]=0;
+//#ifdef  								 						Debug_EN														
+//																		printf("%d [B]:%.3f\r\n",i+1, ((float)Ch_B_DATA.Ch_DATAbuf[i]/1000));
+//#endif
+																		send_message_add(Ch_B_ID);//单字节组包
+																		for(i=0;i<Length;i++)
+																		{
+																			DataPackage(&Ch_B_DATA.Ch_DATAbuf[i]);
+																			Ch_B_DATA.Ch_DATAbuf[i]=0;
+																		}
 													}
 													
-													else if(Channel_ID==Ch_C_ID)
+													if(Sample_Control.Ch_Select & Ch_C_ID)
 													{
-#ifdef  								 						Debug_EN														
-																		printf("%d [C]:%.3f\r\n",i+1, ((float)Ch_C_DATA.Ch_DATAbuf[i]/1000));
-#endif
-																		DataPackage(&Ch_C_DATA.Ch_DATAbuf[i]);
-																		Ch_C_DATA.Ch_DATAbuf[i]=0;
+//#ifdef  								 						Debug_EN														
+//																		printf("%d [C]:%.3f\r\n",i+1, ((float)Ch_C_DATA.Ch_DATAbuf[i]/1000));
+//#endif
+																		send_message_add(Ch_C_ID);//单字节组包
+																		for(i=0;i<Length;i++)
+																		{
+																			DataPackage(&Ch_C_DATA.Ch_DATAbuf[i]);
+																			Ch_C_DATA.Ch_DATAbuf[i]=0;
+																		}
 													}
-													else
+													if(Sample_Control.Ch_Select & Ch_D_ID)
 													{
-#ifdef  								 						Debug_EN														
-																		printf("%d [D]:%.3f\r\n",i+1, ((float)Ch_D_DATA.Ch_DATAbuf[i]/1000));
-#endif
-																		DataPackage(&Ch_D_DATA.Ch_DATAbuf[i]);
-																		Ch_D_DATA.Ch_DATAbuf[i]=0;
+//#ifdef  								 						Debug_EN														
+//																		printf("%d [D]:%.3f\r\n",i+1, ((float)Ch_D_DATA.Ch_DATAbuf[i]/1000));
+//#endif
+																		send_message_add(Ch_D_ID);//单字节组包
+																		for(i=0;i<Length;i++)
+																		{
+																			DataPackage(&Ch_D_DATA.Ch_DATAbuf[i]);
+																			Ch_D_DATA.Ch_DATAbuf[i]=0;
+																		}
 													}			
-							}
+							
 							send_message_add(0x00);//单字节组包
 							send_message_add(0x00);//单字节组包
 							send_message(1);//发送包，完成

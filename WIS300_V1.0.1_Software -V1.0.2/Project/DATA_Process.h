@@ -1,6 +1,8 @@
 #ifndef __DATA_Process_H
 #define __DATA_Process_H
 
+extern __IO unsigned char FrameDataReceived;
+extern __IO unsigned char DMASendDataCompleted;
 void Channel_A_Filter(unsigned char A_Filter_K);//声明A通道一阶滞后滤波器函数
 
 void ADS1248_Sample(unsigned char Ch);														//声明ADS1248数据处理函数

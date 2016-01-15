@@ -4,7 +4,7 @@
 
 static uint8_t receive_buffer[MTU] = {1,3,5};
 static uint8_t send_buffer[MTU];
-static uint8_t send_prepare[120];
+static uint8_t send_prepare[480];
 static int send_prepare_counter;
 static uint8_t ack_buffer[3] = {P_ACK, 0, 0};
 static int send_counter;
@@ -156,7 +156,7 @@ int write_serial_packet(uint8_t *data, int len)
     uint16_t send_crc;
     uint8_t b;
     int i;
-    if (len > 110){ return -1;}
+    if (len > 220){ return -1;}
     if (send_busy){ return -2;}
     //最好使用信号量来控制，暂时先用土方法
     send_busy = 1;
@@ -176,8 +176,8 @@ int write_serial_packet(uint8_t *data, int len)
     add_send_buffer(b);
     send_buffer[send_counter++] = SYNC_BYTE;
     
-    USART_PutData(USART1,(uint8_t *)send_buffer, send_counter);//正常模式
-		//UART1_DMA_SendData((uint8_t *)send_buffer ,send_counter);//采用DMA方式
+    //USART_PutData(USART1,(uint8_t *)send_buffer, send_counter);//正常模式
+		UART1_DMA_SendData((uint8_t *)send_buffer ,send_counter);//采用DMA方式
     send_busy = 0;
     return 1;
 }
@@ -234,7 +234,7 @@ int send_message_add(uint8_t byte)
     /*
      * 这里进行AM message方式组包
      */ 
-    if (send_prepare_counter > 110)
+    if (send_prepare_counter > 220)
         {
             send_prepare_counter = 0;
             return -1;

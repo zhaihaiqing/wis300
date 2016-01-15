@@ -148,7 +148,11 @@ void EXTI0_IRQHandler(void)
   if(EXTI_GetITStatus(EXTI_Line0) != RESET)
   {
 		Ch_D_DATA.Sample_Flag=1;
-		if(  (Ch_D_DATA.Count==0) && (Send_Flag_TPA==0)    ) {Send_Flag_TPA = 0x08;GPIO_SetBits(GPIOB,GPIO_Pin_3);}
+		if(  (Ch_D_DATA.Count==0) && (Send_Flag_TPA==0)    ) 
+		{
+			Send_Flag_TPA = 0x08;
+			//GPIO_SetBits(GPIOB,GPIO_Pin_3);
+		}
 		GPIO_PinReverse(GPIOB,GPIO_Pin_15);
     /* Clear the EXTI line 0 pending bit */
     EXTI_ClearITPendingBit(EXTI_Line0);
@@ -161,7 +165,11 @@ void EXTI1_IRQHandler(void)
   if(EXTI_GetITStatus(EXTI_Line1) != RESET)
   {
 		Ch_C_DATA.Sample_Flag=1;
-		if(  (Ch_C_DATA.Count==0) && (Send_Flag_TPA==0)  ) {Send_Flag_TPA = 0x04;GPIO_SetBits(GPIOB,GPIO_Pin_3);}
+		if(  (Ch_C_DATA.Count==0) && (Send_Flag_TPA==0)  ) 
+		{
+			Send_Flag_TPA = 0x04;
+			//GPIO_SetBits(GPIOB,GPIO_Pin_3);
+		}
 		GPIO_PinReverse(GPIOB,GPIO_Pin_15);
     /* Clear the EXTI line 1 pending bit */
     EXTI_ClearITPendingBit(EXTI_Line1);
@@ -174,7 +182,11 @@ void EXTI2_IRQHandler(void)
   if(EXTI_GetITStatus(EXTI_Line2) != RESET)
   {
 		Ch_B_DATA.Sample_Flag=1;
-		if(  (Ch_B_DATA.Count==0) && (Send_Flag_TPA==0)  ) {Send_Flag_TPA = 0x02;GPIO_SetBits(GPIOB,GPIO_Pin_3);}
+		if(  (Ch_B_DATA.Count==0) && (Send_Flag_TPA==0)  ) 
+		{
+			Send_Flag_TPA = 0x02;
+			//GPIO_SetBits(GPIOB,GPIO_Pin_3);
+		}
 		GPIO_PinReverse(GPIOB,GPIO_Pin_15);
     /* Clear the EXTI line 2 pending bit */
     EXTI_ClearITPendingBit(EXTI_Line2);
@@ -187,7 +199,11 @@ void EXTI15_10_IRQHandler(void)
   if(EXTI_GetITStatus(EXTI_Line10) != RESET)
   {
 		Ch_A_DATA.Sample_Flag=1;					//如果是A通道产的的中断    ，置位标志位
-		if(  (Ch_A_DATA.Count==0) && (Send_Flag_TPA==0)  ) {Send_Flag_TPA = 0x01;GPIO_SetBits(GPIOB,GPIO_Pin_3);}
+		if(  (Ch_A_DATA.Count==0) && (Send_Flag_TPA==0)  ) 
+		{
+			Send_Flag_TPA = 0x01;
+			//GPIO_SetBits(GPIOB,GPIO_Pin_3);
+		}
 		///如果是一包数据中的第一个中断，且没有别的通道向TPA发送中断，则产生中断
 		GPIO_PinReverse(GPIOB,GPIO_Pin_15);
     /* Clear the EXTI line 10 pending bit */
@@ -298,17 +314,19 @@ void TIM6_IRQHandler(void)
 }
 
 
-//void DMA1_Channel4_IRQHandler(void)
-//{
-//	/* Test on DMA1 Channel2 Transfer Complete interrupt */
-//  //if(DMA_GetITStatus(DMA1_IT_TC4))
-//  //{
-//		/* Clear DMA1 Channel6 Half Transfer, Transfer Complete and Global interrupt pending bits */
-//		DMA_ClearITPendingBit(DMA1_IT_TC4);//清楚标志位
-//		DMA_Cmd(DMA1_Channel4, DISABLE);//关闭DMA
-//    //USART_Cmd(USART1, DISABLE);
-// //}
-//}
+void DMA1_Channel4_IRQHandler(void)
+{
+	/* Test on DMA1 Channel2 Transfer Complete interrupt */
+  if(DMA_GetITStatus(DMA1_IT_TC4))
+  {
+		/* Clear DMA1 Channel6 Half Transfer, Transfer Complete and Global interrupt pending bits */
+		DMA_ClearITPendingBit(DMA1_IT_TC4);//清楚标志位
+		DMA_Cmd(DMA1_Channel4, DISABLE);//关闭DMA
+	  GPIO_ResetBits(GPIOB,GPIO_Pin_3);//串口数据发送完成后拉低中断引脚
+	  DMASendDataCompleted=0;
+    //USART_Cmd(USART1, DISABLE);
+ }
+}
 
 
 

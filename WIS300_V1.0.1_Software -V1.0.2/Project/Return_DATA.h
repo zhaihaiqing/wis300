@@ -16,7 +16,7 @@ void Return_ChannelD_Offset(void);	//声明返回通道校准参数函数
 
 void SendDataTPA(unsigned  char *pr,unsigned char Length);
 void DataPackage(int *pr);
-void Return_SampleData(unsigned char Channel_ID,unsigned char Length);
+void Return_SampleData(unsigned char Length);
 
 
 #endif
