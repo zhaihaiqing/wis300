@@ -57,8 +57,8 @@ void Zero_Offset1(void)
 	ADS1248_CS(Ch_A_ID);
 	ADS1248_Init(0x00,THREE_WIRE_SINGLE_BRIDGE);
 	Delay(205);
-
-	EEPROM_DATA.A_Zero_offset=Bubble_sort();
+	//printf("I am run 1!");
+	EEPROM_DATA.A_Zero_offset=Bubble_sort();	
 	EEPROM_DATA.A_Zero_offset=EEPROM_DATA.A_Zero_offset/ADS_PGA;
 	//校准完成后，将数据写入EEPROM，，主程序在上电时从EEPROM中读取	
 	I2C_WriteS_24C(EEPROM_DATA_BASEADDRESS,(unsigned char *)&EEPROM_DATA.A_Zero_offset,sizeof(EEPROM_DATA.A_Zero_offset));//校准完成后，将数据写入EEPROM，，主程序在上电时从EEPROM中读取
@@ -311,12 +311,12 @@ void CALIBRATION_PARAMETERS_SET(void)
 	CALIBRATION_SET.Zero=htonl(CALIBRATION_SET.Zero);
 	CALIBRATION_SET.Half=htonl(CALIBRATION_SET.Half);
 
-	printf("0X%X \r\n",CALIBRATION_SET.Message_type);
-	printf("0X%X \r\n",CALIBRATION_SET.Ch_Select);
-	printf("0X%X \r\n",CALIBRATION_SET.Zero);
-	printf("0X%X \r\n",CALIBRATION_SET.Half);
-	printf("0X%X \r\n",CALIBRATION_SET.Reserve1);
-	printf("0X%X \r\n",CALIBRATION_SET.Reserve2);
+//	printf("0X%X \r\n",CALIBRATION_SET.Message_type);
+//	printf("0X%X \r\n",CALIBRATION_SET.Ch_Select);
+//	printf("0X%X \r\n",CALIBRATION_SET.Zero);
+//	printf("0X%X \r\n",CALIBRATION_SET.Half);
+//	printf("0X%X \r\n",CALIBRATION_SET.Reserve1);
+//	printf("0X%X \r\n",CALIBRATION_SET.Reserve2);
 	
 	if(CALIBRATION_SET.Ch_Select == 0x01)
 	{

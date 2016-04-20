@@ -239,6 +239,9 @@ void Return_SampleData(unsigned char Length)
 																		send_message_add(Ch_A_ID);//单字节组包	
 																		for(i=0;i<Length;i++)
 																		{
+#ifdef  								 									Debug_EN														
+																			printf("%d [A]:%.3f\r\n",i+1, ((float)Ch_A_DATA.Ch_DATAbuf[i]/1000));																		
+#endif
 																			DataPackage(&Ch_A_DATA.Ch_DATAbuf[i]);
 																			Ch_A_DATA.Ch_DATAbuf[i]=0;
 																		}

@@ -19,7 +19,7 @@
 #pragma   pack(1)										    //结构体单字节对齐方式      #pragma pack(n)
 
 #define   WatchDog_EN
-#define		Debug_EN
+#define	  Debug_EN
 
 
 #define	ADS_PGA							 	        128

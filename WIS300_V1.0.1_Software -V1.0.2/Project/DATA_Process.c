@@ -126,6 +126,7 @@ void ADS1248_Sample(unsigned char Ch)
 	adc=ADS1248_ReadData();///读取ADS1248数据
 	//此处加滤波
 	adcV=((float)adc/0x7fffff)*2.0477;//采样电压值变换
+	//printf("adcV:%f\r\n",adcV);
 	if(HalfSubZero<0)HalfSubZero=0-HalfSubZero;
 	switch(Bridgr_Type)
 	{
@@ -138,6 +139,9 @@ void ADS1248_Sample(unsigned char Ch)
 		case 0x0c:
 					strainVal=adcV*384400/(122616.276*K_Val);				//应变值转换
 					strainVal=strainVal/PGA_Gain;
+					//printf("strainVal:%.9f\r\n",strainVal);
+					//printf("Zero_offset:%f\r\n",Zero_offset);
+					//printf("HalfSubZero:%f\r\n",HalfSubZero);
 					strainVal=strainVal*1000-Zero_offset;	//此处X1000是应为K值放大了1000倍						//修正0点	
 					strainVal=strainVal*5000000/HalfSubZero;//半量程修正		
 			break;

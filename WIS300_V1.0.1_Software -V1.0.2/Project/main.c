@@ -129,9 +129,12 @@ int main(void)
 		printf("Watchdog Reset!\r\n");
 #endif
 		RCC_ClearFlag();}
-		IWDG_INIT(5000);
+		IWDG_INIT(10000);
 #endif
-	I2C1_ReadS_24C(EEPROM_DATA_BASEADDRESS,(unsigned char *)&EEPROM_DATA.A_Zero_offset,sizeof(EEPROM_DATA));	
+	I2C1_ReadS_24C(EEPROM_DATA_BASEADDRESS,(unsigned char *)&EEPROM_DATA.A_Zero_offset,sizeof(EEPROM_DATA));
+
+	printf("EEPROM_DATA.A_Zero_offset:%.9f\r\n",EEPROM_DATA.A_Zero_offset);
+	printf("EEPROM_DATA.A_Half_offset:%.9f\r\n",EEPROM_DATA.A_Half_offset);
 		
 #ifdef WatchDog_EN
 	IWDG_ReloadCounter();//Î¹¹·
@@ -141,18 +144,22 @@ int main(void)
 #endif		
 	
 		
-//	while(1){	
+//		
 //		send_message_prepare(0xa1);
 //		
-//		for(Test_i=0;Test_i<110;Test_i++)
-//			       send_message_add(Test_i);
+//		
+//		send_message_add(29);
+//		send_message_add(1);
+//		send_message_add(1);
+//		
+//		send_message_add(0);
+//		send_message_add(0);
 //		
 //		send_message(1);
-//		Delay(500);
 //		
-//	}
-//			
-//		
+	
+			
+		
 		
 		
 		

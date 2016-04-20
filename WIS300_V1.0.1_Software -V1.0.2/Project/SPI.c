@@ -171,7 +171,7 @@ ADS1248初始化函数，配置桥类型、激励源、采样速度
 void ADS1248_Init(unsigned char Sample_Speed,unsigned char Bridge_Type)
 {                       
 	//固定AIN0为正输入，AIN1为负输入，不可更改
-	ADS1248_WriteReg(ADS_MUX0,0x01);  //00 001 000,Bit7-6:传感器电流源检测不使用，Bit5-3:正输入为AIN0，Bit2-0:负输入为AIN1
+	ADS1248_WriteReg(ADS_MUX0,0x08);  //00 001 000,Bit7-6:传感器电流源检测不使用，Bit5-3:正输入为AIN0，Bit2-0:负输入为AIN1
 	ADS1248_WriteReg(ADS_VBIAS,0x00); //00000000,Bit7-0:偏置电压选择关闭（默认）
 	//固定选择外部REF1作为参考电压源，不可更改
 	ADS1248_WriteReg(ADS_MUX1,0x00); //000 00 000,Bit7：启用内部晶振，Bit6-5:内部基准一直关闭，Bit4-3:输入基准为外部REF1，Bit2-0:普通模式
