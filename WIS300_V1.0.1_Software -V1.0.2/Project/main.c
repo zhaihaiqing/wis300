@@ -133,8 +133,8 @@ int main(void)
 #endif
 	I2C1_ReadS_24C(EEPROM_DATA_BASEADDRESS,(unsigned char *)&EEPROM_DATA.A_Zero_offset,sizeof(EEPROM_DATA));
 
-	printf("EEPROM_DATA.A_Zero_offset:%.9f\r\n",EEPROM_DATA.A_Zero_offset);
-	printf("EEPROM_DATA.A_Half_offset:%.9f\r\n",EEPROM_DATA.A_Half_offset);
+	//printf("EEPROM_DATA.A_Zero_offset:%.9f\r\n",EEPROM_DATA.A_Zero_offset);
+	//printf("EEPROM_DATA.A_Half_offset:%.9f\r\n",EEPROM_DATA.A_Half_offset);
 		
 #ifdef WatchDog_EN
 	IWDG_ReloadCounter();//Î¹¹·
