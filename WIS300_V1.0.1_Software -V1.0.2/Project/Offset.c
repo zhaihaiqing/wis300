@@ -39,7 +39,7 @@ float Bubble_sort(void)
 	}
 	temp=(Data_temp[8]+Data_temp[9]+Data_temp[10]+Data_temp[11]+Data_temp[12]+Data_temp[13]+Data_temp[14])/7;
 	temp=temp*((500+120)*(500+120))/(499*120*2.00*2.0477);
-	return temp;
+	return temp;//返回应变值
 }
 /*******************************************************************************
 * Function Name  : Zero_Offsetx(),Half_offsetx()

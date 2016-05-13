@@ -214,8 +214,8 @@ typedef struct{
 typedef struct{
 	unsigned char Message_type;
 	unsigned char Ch_Select;
-	unsigned int Zero;
-	unsigned int Half;
+	signed int Zero;
+	signed int Half;
 	unsigned char Reserve1;					//保留字节1
 	unsigned char Reserve2;					//保留字节2
 }CALIBRATION_tagdef;

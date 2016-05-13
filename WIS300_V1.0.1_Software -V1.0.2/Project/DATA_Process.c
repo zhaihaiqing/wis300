@@ -131,25 +131,28 @@ void ADS1248_Sample(unsigned char Ch)
 	switch(Bridgr_Type)
 	{
 		case 0x84:
-					strainVal=adcV*384400/(122616.276*K_Val);
+					strainVal=adcV*384400/(122616.276*2000);
 					strainVal=strainVal/PGA_Gain;
 					strainVal=strainVal*1000-Zero_offset;	//此处X1000是应为K值放大了1000倍
-					strainVal=(strainVal*5000000)/HalfSubZero;//半量程修正			
+					strainVal=(strainVal*5000000)/HalfSubZero;//半量程修正
+					strainVal=strainVal*K_Val/2000;
 			break;
 		case 0x0c:
-					strainVal=adcV*384400/(122616.276*K_Val);				//应变值转换
+					strainVal=adcV*384400/(122616.276*2000);				//应变值转换
 					strainVal=strainVal/PGA_Gain;
 					//printf("strainVal:%.9f\r\n",strainVal);
 					//printf("Zero_offset:%f\r\n",Zero_offset);
 					//printf("HalfSubZero:%f\r\n",HalfSubZero);
 					strainVal=strainVal*1000-Zero_offset;	//此处X1000是应为K值放大了1000倍						//修正0点	
-					strainVal=strainVal*5000000/HalfSubZero;//半量程修正		
+					strainVal=strainVal*5000000/HalfSubZero;//半量程修正
+					strainVal=strainVal*K_Val/2000;
 			break;
 		case 0x04:
-					strainVal=adcV*384400/(122616.276*K_Val);
+					strainVal=adcV*384400/(122616.276*2000);
 					strainVal=strainVal/PGA_Gain;
 					strainVal=strainVal/2;
-					strainVal=strainVal*1000000000000;
+					strainVal=strainVal*1000000000000;//X1000000,转换成微应变，X1000，保留三位小数，X1000是由于K值放大1000倍了
+					strainVal=strainVal*K_Val/2000;
 			 //自动增益控制：应添加到对应通道的末尾处
 					if((adcV>2)|(adcV<-2))
 					{	
@@ -163,10 +166,11 @@ void ADS1248_Sample(unsigned char Ch)
 					}
 			break;
 		case 0x20:
-					strainVal=adcV*57600/(29486.88*K_Val);		//应变值转换
+					strainVal=adcV*57600/(29486.88*2000);		//应变值转换
 					strainVal=strainVal/PGA_Gain;
 					strainVal=strainVal/4;
 					strainVal=strainVal*1000000000000;
+					strainVal=strainVal*K_Val/2000;
 					//自动增益控制：应添加到对应通道的末尾处
 					if((adcV>2)|(adcV<-2))
 					{
