@@ -125,15 +125,16 @@ void ADS1248_Sample(unsigned char Ch)
 	}
 	adc=ADS1248_ReadData();///读取ADS1248数据
 	//此处加滤波
-	adcV=((float)adc/0x7fffff)*2.0477;//采样电压值变换
+	adcV=((float)adc/0x7fffff)*2.048;//采样电压值变换
 	//printf("adcV:%f\r\n",adcV);
 	if(HalfSubZero<0)HalfSubZero=0-HalfSubZero;
+	//应变=( adcV*(R1+R2)*(R1+R2) ) / ( R1*R2*K*Uexc )
 	switch(Bridgr_Type)
 	{
 		case 0x84:
 					strainVal=adcV*384400/(122616.276*2000);
 					strainVal=strainVal/PGA_Gain;
-					strainVal=strainVal*1000-Zero_offset;	//此处X1000是应为K值放大了1000倍
+					strainVal=strainVal*1000-Zero_offset;	  //此处X1000是应为K值放大了1000倍
 					strainVal=(strainVal*5000000)/HalfSubZero;//半量程修正
 					strainVal=strainVal*K_Val/2000;
 			break;
@@ -150,42 +151,61 @@ void ADS1248_Sample(unsigned char Ch)
 		case 0x04:
 					strainVal=adcV*384400/(122616.276*2000);
 					strainVal=strainVal/PGA_Gain;
-					strainVal=strainVal/2;
+					//strainVal=strainVal/2;
 					strainVal=strainVal*1000000000000;//X1000000,转换成微应变，X1000，保留三位小数，X1000是由于K值放大1000倍了
 					strainVal=strainVal*K_Val/2000;
-			 //自动增益控制：应添加到对应通道的末尾处
-					if((adcV>2)|(adcV<-2))
-					{	
-							PGA_Gain=PGA_Gain>>1;
-							DATA_temp=ADS1248_ReadREG(ADS_SYS0);
-							DATA_temp=DATA_temp&0x0f;
-							if(PGA_Gain==64)
-							{					
-								ADS1248_WriteReg(ADS_SYS0,0x60|DATA_temp);
-							}
-					}
+					//自动增益控制：应添加到对应通道的末尾处
+//					if( ((adcV>2)|(adcV<-2)) && (PGA_Gain == 128) )
+//					{	
+//							PGA_Gain=64;
+//							DATA_temp=ADS1248_ReadREG(ADS_SYS0);
+//							DATA_temp=DATA_temp&0x0f;				
+//							ADS1248_WriteReg(ADS_SYS0,0x60|DATA_temp);
+//					}
+//					if(((adcV<2)|(adcV>-2)) && (PGA_Gain == 64))
+//					{
+//							PGA_Gain=128;
+//							DATA_temp=ADS1248_ReadREG(ADS_SYS0);
+//							DATA_temp=DATA_temp&0x0f;
+//							ADS1248_WriteReg(ADS_SYS0,0x70|DATA_temp);							
+//					}
+					
 			break;
 		case 0x20:
-					strainVal=adcV*57600/(29486.88*2000);		//应变值转换
+					strainVal=adcV*57600/(29440*2000);		//应变值转换
 					strainVal=strainVal/PGA_Gain;
-					strainVal=strainVal/4;
+					//strainVal=strainVal/4;
 					strainVal=strainVal*1000000000000;
 					strainVal=strainVal*K_Val/2000;
 					//自动增益控制：应添加到对应通道的末尾处
-					if((adcV>2)|(adcV<-2))
-					{
-							PGA_Gain=PGA_Gain>>1;
-							DATA_temp=ADS1248_ReadREG(ADS_SYS0);//注意此处是否会出现抖动数据
-							DATA_temp=DATA_temp&0x0f;
-							if(PGA_Gain==64)
-							{					
-								ADS1248_WriteReg(ADS_SYS0,0x60|DATA_temp);
-							}
-							if(PGA_Gain==32)
-							{
-								ADS1248_WriteReg(ADS_SYS0,0x50|DATA_temp);
-							}
-					}
+//					if( ((adcV>2)|(adcV<-2)) && (PGA_Gain == 128) )
+//					{	
+//							PGA_Gain=64;
+//							DATA_temp=ADS1248_ReadREG(ADS_SYS0);
+//							DATA_temp=DATA_temp&0x0f;				
+//							ADS1248_WriteReg(ADS_SYS0,0x60|DATA_temp);
+//					}
+//					if( ((adcV>2)|(adcV<-2)) && (PGA_Gain == 64) )
+//					{	
+//							PGA_Gain=32;
+//							DATA_temp=ADS1248_ReadREG(ADS_SYS0);
+//							DATA_temp=DATA_temp&0x0f;				
+//							ADS1248_WriteReg(ADS_SYS0,0x50|DATA_temp);
+//					}
+//					if(((adcV<2)|(adcV>-2)) && (PGA_Gain == 64))
+//					{
+//							PGA_Gain=128;
+//							DATA_temp=ADS1248_ReadREG(ADS_SYS0);
+//							DATA_temp=DATA_temp&0x0f;
+//							ADS1248_WriteReg(ADS_SYS0,0x70|DATA_temp);							
+//					}
+//					if(((adcV<2)|(adcV>-2)) && (PGA_Gain == 32))
+//					{
+//							PGA_Gain=64;
+//							DATA_temp=ADS1248_ReadREG(ADS_SYS0);
+//							DATA_temp=DATA_temp&0x0f;
+//							ADS1248_WriteReg(ADS_SYS0,0x60|DATA_temp);							
+//					}					
 			break;
 		default:
 			break;

@@ -22,7 +22,7 @@ float Bubble_sort(void)
 		temp=ADS1248_ReadData();
 		Delay(205);
 		ADS1248_WriteByte(ADS_RDATA);
-		Data_temp[i]=(((float)temp/0x7fffff)*2.0477);//应变极性转换
+		Data_temp[i]=(((float)temp/0x7fffff)*2.048);//应变极性转换
 	}
 	//冒泡排序，采样21次，从小到大排序，取中间7个数，求均值
 	for(i=0;i<21;i++)
@@ -38,7 +38,7 @@ float Bubble_sort(void)
 		}
 	}
 	temp=(Data_temp[8]+Data_temp[9]+Data_temp[10]+Data_temp[11]+Data_temp[12]+Data_temp[13]+Data_temp[14])/7;
-	temp=temp*((500+120)*(500+120))/(499*120*2.00*2.0477);
+	temp=temp*((500+120)*(500+120))/(499*120*2.00*2.048);
 	return temp;//返回应变值
 }
 /*******************************************************************************
