@@ -106,36 +106,36 @@ void UART1TX_DMA_Configuration( void )
 {
 	DMA_InitTypeDef DMA_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
-  uint32_t temp;
+	uint32_t temp;
 	/* DMA1 channel4 configuration ---------------------------------------------*/
-  /* Enable DMA1 clock --------------------------------------------------------*/
+	/* Enable DMA1 clock --------------------------------------------------------*/
 	/*DMA1 channel4,USART1_TX*/
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
-  DMA_DeInit(DMA1_Channel4);//开启DMA1的第四通道，对应USART1_TX
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
+	DMA_DeInit(DMA1_Channel4);//开启DMA1的第四通道，对应USART1_TX
 	
-  DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&USART1->DR);//DMA对应的外设地址
-  DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&temp;//内存缓存地址
-  DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;//DMA的转换模式为DST模式，由内存搬移到外设
-  DMA_InitStructure.DMA_BufferSize = 1;//DMA缓存大小，当发送N个字节的数据后自动产生中断
-  DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;//接收一次数据后，设备地址禁止后移
-  DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;//内存地址自增
-  DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;//DMA搬移数据尺寸，Byte就是为8位
-  DMA_InitStructure.DMA_MemoryDataSize = DMA_PeripheralDataSize_Byte;
-  DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;//正常模式
-  DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
-  DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;//内存到内存失能
-  DMA_Init(DMA1_Channel4, &DMA_InitStructure);
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&USART1->DR);//DMA对应的外设地址
+	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&temp;//内存缓存地址
+	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;//DMA的转换模式为DST模式，由内存搬移到外设
+	DMA_InitStructure.DMA_BufferSize = 1;//DMA缓存大小，当发送N个字节的数据后自动产生中断
+	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;//接收一次数据后，设备地址禁止后移
+	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;//内存地址自增
+	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;//DMA搬移数据尺寸，Byte就是为8位
+	DMA_InitStructure.DMA_MemoryDataSize = DMA_PeripheralDataSize_Byte;
+	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;//正常模式
+	DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
+	DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;//内存到内存失能
+	DMA_Init(DMA1_Channel4, &DMA_InitStructure);
 
 	/* Enable DMA1 channel4 IRQ Channel */
-  NVIC_InitStructure.NVIC_IRQChannel = DMA1_Channel4_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);
+	NVIC_InitStructure.NVIC_IRQChannel = DMA1_Channel4_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 	/* Enable USART1_TX request */
 	
-  /* Enable DMA1 Channel4 Transfer Complete interrupt */
-  DMA_ITConfig(DMA1_Channel4, DMA_IT_TC, ENABLE);
+	/* Enable DMA1 Channel4 Transfer Complete interrupt */
+	DMA_ITConfig(DMA1_Channel4, DMA_IT_TC, ENABLE);
 	//DMA_ITConfig(DMA1_Channel4, DMA_IT_TE, ENABLE);
 	USART_DMACmd(USART1,USART_DMAReq_Tx,ENABLE);  //接收缓存区DMA使能
  	//DMA_Cmd(DMA1_Channel4,  DISABLE);
